@@ -42,49 +42,40 @@ public class SwapTradeProcessor {
                                                           BigDecimal notionalDecrease,
                                                           String notionalCurrency) {
         // QuantityChangeInstruction specifying a decrease in notional
-        QuantityChangeInstruction quantityChangeInstruction =
-                QuantityChangeInstruction.builder()
-                        .setDirection(QuantityChangeDirectionEnum.DECREASE)
-                        .addChange(PriceQuantity.builder()
-                                .addQuantityValue(NonNegativeQuantitySchedule.builder()
-                                        .setValue(notionalDecrease)
-                                        .setUnit(UnitType.builder().setCurrency(getCurrency(notionalCurrency)))));
+        PrimitiveInstruction quantityChangeInstruction =
+                PrimitiveInstruction.builder()
+                        .setQuantityChange(QuantityChangeInstruction.builder()
+                                .setDirection(QuantityChangeDirectionEnum.DECREASE)
+                                .addChange(PriceQuantity.builder()
+                                        .addQuantityValue(NonNegativeQuantitySchedule.builder()
+                                                .setValue(notionalDecrease)
+                                                .setUnit(UnitType.builder().setCurrency(getCurrency(notionalCurrency))))))
+                        .build();
 
-        // Create an Instruction that contains:
-        // - before TradeState
-        // - PrimitiveInstruction containing a QuantityChangeInstruction
-        Instruction tradeStateInstruction = Instruction.builder()
-                .setBeforeValue(before)
-                .setPrimitiveInstruction(PrimitiveInstruction.builder()
-                        .setQuantityChange(quantityChangeInstruction));
+        Identifier eventIdentifier = Identifier.builder()
+                .addAssignedIdentifier(AssignedIdentifier.builder()
+                        .setIdentifierValue("PartialTermination-Example"))
+                .build();
 
-        // Create a workflow step instruction containing the EventInstruction, EventTimestamp and EventIdentifiers
-        return WorkflowStep.builder()
-                .setProposedEvent(EventInstruction.builder()
-                        .addInstruction(tradeStateInstruction)
-                        .setEventDate(eventDate))
-                .addTimestamp(EventTimestamp.builder()
-                        .setDateTime(ZonedDateTime.of(eventDate.toLocalDate(), LocalTime.of(9, 0), ZoneOffset.UTC.normalized()))
-                        .setQualification(EventTimestampQualificationEnum.EVENT_CREATION_DATE_TIME))
-                .addEventIdentifier(Identifier.builder()
-                        .addAssignedIdentifier(AssignedIdentifier.builder().setIdentifierValue("PartialTermination-Example")))
-                .build(); // ensure you call build() on the function input
+        return createEventInstruction(before, null, eventDate, quantityChangeInstruction, eventIdentifier);
     }
 
-    public WorkflowStep createNovationInstruction(TradeState beforeTradeState,
-                                                  Date eventDate,
-                                                  CounterpartyRoleEnum counterpartyRole,
-                                                  Party party,
-                                                  TradeIdentifier tradeIdentifier, String notionalCurrency) {
+    public WorkflowStep createNovationEventInstruction(TradeState beforeTradeState,
+                                                       Date eventDate,
+                                                       CounterpartyRoleEnum counterpartyRole,
+                                                       Party newParty,
+                                                       TradeIdentifier newTradeIdentifier,
+                                                       String notionalCurrency) {
         // SplitInstruction contains two split breakdowns
-        SplitInstruction splitInstruction = SplitInstruction.builder()
+        PrimitiveInstruction splitInstruction = PrimitiveInstruction.builder()
+                .setSplit(SplitInstruction.builder()
                 // Split breakdown for party change, new trade id etc
                 .addBreakdown(PrimitiveInstruction.builder()
                         .setPartyChange(PartyChangeInstruction.builder()
                                 .setCounterparty(Counterparty.builder()
-                                        .setPartyReferenceValue(party)
+                                        .setPartyReferenceValue(newParty)
                                         .setRole(counterpartyRole))
-                                .setTradeId(Lists.newArrayList(tradeIdentifier))))
+                                .setTradeId(Lists.newArrayList(newTradeIdentifier))))
                 // Split breakdown to terminate the original trade
                 .addBreakdown(PrimitiveInstruction.builder()
                         .setQuantityChange(QuantityChangeInstruction.builder()
@@ -93,28 +84,36 @@ public class SwapTradeProcessor {
                                         .addQuantity(FieldWithMetaNonNegativeQuantitySchedule.builder()
                                                 .setValue(NonNegativeQuantitySchedule.builder()
                                                         .setValue(BigDecimal.valueOf(0.0))
-                                                        .setUnit(UnitType.builder().setCurrency(getCurrency(notionalCurrency))))))));
+                                                        .setUnit(UnitType.builder().setCurrency(getCurrency(notionalCurrency)))))))))
+                .build();
 
+        Identifier eventIdentifier = Identifier.builder()
+                .addAssignedIdentifier(AssignedIdentifier.builder()
+                        .setIdentifierValue("Novation-Example"))
+                .build();
+
+        return createEventInstruction(beforeTradeState, EventIntentEnum.NOVATION, eventDate, splitInstruction, eventIdentifier);
+    }
+
+    private WorkflowStep createEventInstruction(TradeState before, EventIntentEnum intent, Date eventDate, PrimitiveInstruction primitiveInstruction, Identifier identifier) {
         // Create an Instruction that contains:
         // - before TradeState
-        // - PrimitiveInstruction containing a SplitInstruction
+        // - PrimitiveInstruction containing a PrimitiveInstruction
         Instruction tradeStateInstruction = Instruction.builder()
-                .setBeforeValue(beforeTradeState)
-                .setPrimitiveInstruction(PrimitiveInstruction.builder()
-                        .setSplit(splitInstruction));
+                .setBeforeValue(before)
+                .setPrimitiveInstruction(primitiveInstruction);
 
         // Create a workflow step instruction containing the EventInstruction, EventTimestamp and EventIdentifiers
         return WorkflowStep.builder()
                 .setProposedEvent(EventInstruction.builder()
                         .addInstruction(tradeStateInstruction)
-                        .setIntent(EventIntentEnum.NOVATION)
+                        .setIntent(intent)
                         .setEventDate(eventDate))
                 .addTimestamp(EventTimestamp.builder()
                         .setDateTime(ZonedDateTime.of(eventDate.toLocalDate(), LocalTime.of(9, 0), ZoneOffset.UTC.normalized()))
                         .setQualification(EventTimestampQualificationEnum.EVENT_CREATION_DATE_TIME))
-                .addEventIdentifier(Identifier.builder()
-                        .addAssignedIdentifier(AssignedIdentifier.builder().setIdentifierValue("Novation-Example")))
-                .build(); // ensure you call build() on the function input
+                .addEventIdentifier(identifier)
+                .build();
     }
 
     /**

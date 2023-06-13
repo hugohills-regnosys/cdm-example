@@ -68,7 +68,7 @@ class SwapTradeProcessorTest {
         TradeState beforeTradeState = getObjectAndResolveReferences(TradeState.class, "novation/before-trade-state.json");
 
         WorkflowStep eventInstruction =
-                swapTradeProcessor.createNovationInstruction(beforeTradeState,
+                swapTradeProcessor.createNovationEventInstruction(beforeTradeState,
                         Date.of(2013, 2, 12),
                         CounterpartyRoleEnum.PARTY_2,
                         getParty(),
