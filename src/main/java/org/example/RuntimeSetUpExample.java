@@ -6,6 +6,9 @@ import com.google.inject.Guice;
 import com.google.inject.Injector;
 import org.isda.cdm.CdmRuntimeModule;
 
+/**
+ * Set up Guice injector
+ */
 public class RuntimeSetUpExample {
 
     public static void main(String[] args) {

@@ -2,10 +2,7 @@ package org.example;
 
 import cdm.base.staticdata.identifier.AssignedIdentifier;
 import cdm.base.staticdata.identifier.TradeIdentifierTypeEnum;
-import cdm.base.staticdata.party.CounterpartyRoleEnum;
-import cdm.base.staticdata.party.Party;
-import cdm.base.staticdata.party.PartyIdentifier;
-import cdm.base.staticdata.party.PartyIdentifierTypeEnum;
+import cdm.base.staticdata.party.*;
 import cdm.event.common.TradeIdentifier;
 import cdm.event.common.TradeState;
 import cdm.event.workflow.WorkflowStep;
@@ -70,9 +67,9 @@ class EventExampleTest {
         WorkflowStep eventInstruction =
                 eventExample.createNovationEventInstruction(beforeTradeState,
                         Date.of(2013, 2, 12),
-                        CounterpartyRoleEnum.PARTY_2,
-                        getParty(),
-                        getTradeIdentifier(),
+                                Counterparty.builder()
+                                                .setPartyReferenceValue(getParty())
+                                                .setRole(CounterpartyRoleEnum.PARTY_2), getTradeIdentifier(),
                         "USD")
                         .build();
 

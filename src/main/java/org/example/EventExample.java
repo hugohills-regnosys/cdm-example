@@ -7,8 +7,6 @@ import cdm.base.math.metafields.FieldWithMetaNonNegativeQuantitySchedule;
 import cdm.base.staticdata.identifier.AssignedIdentifier;
 import cdm.base.staticdata.identifier.Identifier;
 import cdm.base.staticdata.party.Counterparty;
-import cdm.base.staticdata.party.CounterpartyRoleEnum;
-import cdm.base.staticdata.party.Party;
 import cdm.event.common.*;
 import cdm.event.workflow.EventInstruction;
 import cdm.event.workflow.EventTimestamp;
@@ -30,6 +28,9 @@ import java.time.LocalTime;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 
+/**
+ * Partial termination and novation events
+ */
 public class EventExample {
 
     @Inject
@@ -37,6 +38,15 @@ public class EventExample {
     @Inject
     WorkflowPostProcessor postProcessor;
 
+    /**
+     * Create termination event instruction
+     *
+     * @param before           - Trade to be terminated
+     * @param eventDate        - Event date
+     * @param notionalDecrease - Notional decrease to be applied
+     * @param notionalCurrency - Notional currency to be changed
+     * @return WorkflowStep containing a proposed partial termination event
+     */
     public WorkflowStep createTerminationEventInstruction(TradeState before,
                                                           Date eventDate,
                                                           BigDecimal notionalDecrease,
@@ -60,10 +70,18 @@ public class EventExample {
         return createEventInstruction(before, null, eventDate, quantityChangeInstruction, eventIdentifier);
     }
 
-    public WorkflowStep createNovationEventInstruction(TradeState beforeTradeState,
+    /**
+     * Create novation event instruction
+     *
+     * @param before             - Trade to be novated
+     * @param eventDate          - Event date
+     * @param newParty           - Stepping in party
+     * @param newTradeIdentifier - New trade identifier
+     * @return WorkflowStep containing proposed novation event
+     */
+    public WorkflowStep createNovationEventInstruction(TradeState before,
                                                        Date eventDate,
-                                                       CounterpartyRoleEnum counterpartyRole,
-                                                       Party newParty,
+                                                       Counterparty newParty,
                                                        TradeIdentifier newTradeIdentifier,
                                                        String notionalCurrency) {
         // SplitInstruction contains two split breakdowns
@@ -72,9 +90,7 @@ public class EventExample {
                         // Split breakdown for party change, new trade id etc
                         .addBreakdown(PrimitiveInstruction.builder()
                                 .setPartyChange(PartyChangeInstruction.builder()
-                                        .setCounterparty(Counterparty.builder()
-                                                .setPartyReferenceValue(newParty)
-                                                .setRole(counterpartyRole))
+                                        .setCounterparty(newParty)
                                         .setTradeId(Lists.newArrayList(newTradeIdentifier))))
                         // Split breakdown to terminate the original trade
                         .addBreakdown(PrimitiveInstruction.builder()
@@ -92,9 +108,12 @@ public class EventExample {
                         .setIdentifierValue("Novation-Example"))
                 .build();
 
-        return createEventInstruction(beforeTradeState, EventIntentEnum.NOVATION, eventDate, splitInstruction, eventIdentifier);
+        return createEventInstruction(before, EventIntentEnum.NOVATION, eventDate, splitInstruction, eventIdentifier);
     }
 
+    /**
+     * Create a WorkflowStep containing a proposed event.
+     */
     private WorkflowStep createEventInstruction(TradeState before, EventIntentEnum intent, Date eventDate, PrimitiveInstruction primitiveInstruction, Identifier identifier) {
         // Create an Instruction that contains:
         // - before TradeState
@@ -119,12 +138,12 @@ public class EventExample {
     /**
      * Invoke function and post-process result (e.g. qualify etc).
      *
-     * @param workflowStepInstruction - WorkflowStep containing a proposed EventInstruction
+     * @param proposedEvent - WorkflowStep containing a proposed EventInstruction
      * @return Qualified WorkflowStep - containing a BusinessEvent
      */
-    public WorkflowStep executeEvent(WorkflowStep workflowStepInstruction) {
+    public WorkflowStep executeEvent(WorkflowStep proposedEvent) {
         // Invoke function to create a fully-specified event WorkflowStep (that contains a BusinessEvent)
-        WorkflowStep eventWorkflowStep = createWorkflowStep.evaluate(workflowStepInstruction);
+        WorkflowStep eventWorkflowStep = createWorkflowStep.evaluate(proposedEvent);
 
         // Post-process the eventWorkflowStep to qualify, re-resolve references etc.
         // This post-process step is optional depending on how you intend to process the workflow step.

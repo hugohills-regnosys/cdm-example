@@ -6,6 +6,9 @@ import com.regnosys.rosetta.common.serialisation.RosettaObjectMapper;
 
 public class CreateOrLoadDataExample {
 
+    /**
+     * Load or create CDM data
+     */
     public static void main(String[] args) throws JsonProcessingException {
         // Creating CDM data using Java.
         // Builder pattern
