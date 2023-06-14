@@ -23,14 +23,14 @@ import java.math.BigDecimal;
 import static org.example.ResourcesUtils.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-class SwapTradeProcessorTest {
+class EventExampleTest {
 
-    private SwapTradeProcessor swapTradeProcessor;
+    private EventExample eventExample;
 
     @BeforeEach
     public void setUp() {
         Injector injector = Guice.createInjector(new CdmRuntimeModule());
-        swapTradeProcessor = injector.getInstance(SwapTradeProcessor.class);
+        eventExample = injector.getInstance(EventExample.class);
     }
 
     @Test
@@ -39,7 +39,7 @@ class SwapTradeProcessorTest {
         TradeState beforeTradeState = getObjectAndResolveReferences(TradeState.class, "partial-termination/before-trade-state.json");
 
         WorkflowStep eventInstruction =
-                swapTradeProcessor.createTerminationEventInstruction(beforeTradeState,
+                eventExample.createTerminationEventInstruction(beforeTradeState,
                         Date.of(2013, 2, 12),
                         BigDecimal.valueOf(7000000),
                         "USD")
@@ -55,7 +55,7 @@ class SwapTradeProcessorTest {
         // Trade to be partially terminated.  Note that all references are resolved here.
         WorkflowStep eventInstruction = getObjectAndResolveReferences(WorkflowStep.class, "partial-termination/event-instruction.json");
 
-        WorkflowStep event = swapTradeProcessor.executeEvent(eventInstruction);
+        WorkflowStep event = eventExample.executeEvent(eventInstruction);
 
         assertEquals(
                 getJson("partial-termination/event.json"),
@@ -68,7 +68,7 @@ class SwapTradeProcessorTest {
         TradeState beforeTradeState = getObjectAndResolveReferences(TradeState.class, "novation/before-trade-state.json");
 
         WorkflowStep eventInstruction =
-                swapTradeProcessor.createNovationEventInstruction(beforeTradeState,
+                eventExample.createNovationEventInstruction(beforeTradeState,
                         Date.of(2013, 2, 12),
                         CounterpartyRoleEnum.PARTY_2,
                         getParty(),
@@ -86,7 +86,7 @@ class SwapTradeProcessorTest {
         // Trade to be novated.  Note that all references are resolved here.
         WorkflowStep eventInstruction = getObjectAndResolveReferences(WorkflowStep.class, "novation/event-instruction.json");
 
-        WorkflowStep event = swapTradeProcessor.executeEvent(eventInstruction);
+        WorkflowStep event = eventExample.executeEvent(eventInstruction);
 
         assertEquals(
                 getJson("novation/event.json"),

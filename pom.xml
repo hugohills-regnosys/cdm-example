@@ -4,21 +4,24 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>org.example</groupId>
-    <artifactId>trade-processor-example</artifactId>
+    <groupId>com.regnosys</groupId>
+    <artifactId>cdm-example</artifactId>
     <version>1.0-SNAPSHOT</version>
 
     <properties>
-        <maven.compiler.release>17</maven.compiler.release>
+        <maven.compiler.source>17</maven.compiler.source>
+        <maven.compiler.target>17</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
 
     <dependencies>
+        <!-- https://central.sonatype.com/artifact/org.finos.cdm/cdm-java -->
         <dependency>
-            <groupId>com.isda</groupId>
-            <artifactId>cdm</artifactId>
-            <version>4.0.0-dev.50</version>
+            <groupId>org.finos.cdm</groupId>
+            <artifactId>cdm-java</artifactId>
+            <version>0.0.1-dev.5</version>
         </dependency>
+
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter</artifactId>

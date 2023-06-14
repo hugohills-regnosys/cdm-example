@@ -30,7 +30,7 @@ import java.time.LocalTime;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 
-public class SwapTradeProcessor {
+public class EventExample {
 
     @Inject
     Create_AcceptedWorkflowStepFromInstruction createWorkflowStep;
@@ -69,22 +69,22 @@ public class SwapTradeProcessor {
         // SplitInstruction contains two split breakdowns
         PrimitiveInstruction splitInstruction = PrimitiveInstruction.builder()
                 .setSplit(SplitInstruction.builder()
-                // Split breakdown for party change, new trade id etc
-                .addBreakdown(PrimitiveInstruction.builder()
-                        .setPartyChange(PartyChangeInstruction.builder()
-                                .setCounterparty(Counterparty.builder()
-                                        .setPartyReferenceValue(newParty)
-                                        .setRole(counterpartyRole))
-                                .setTradeId(Lists.newArrayList(newTradeIdentifier))))
-                // Split breakdown to terminate the original trade
-                .addBreakdown(PrimitiveInstruction.builder()
-                        .setQuantityChange(QuantityChangeInstruction.builder()
-                                .setDirection(QuantityChangeDirectionEnum.REPLACE)
-                                .addChange(PriceQuantity.builder()
-                                        .addQuantity(FieldWithMetaNonNegativeQuantitySchedule.builder()
-                                                .setValue(NonNegativeQuantitySchedule.builder()
-                                                        .setValue(BigDecimal.valueOf(0.0))
-                                                        .setUnit(UnitType.builder().setCurrency(getCurrency(notionalCurrency)))))))))
+                        // Split breakdown for party change, new trade id etc
+                        .addBreakdown(PrimitiveInstruction.builder()
+                                .setPartyChange(PartyChangeInstruction.builder()
+                                        .setCounterparty(Counterparty.builder()
+                                                .setPartyReferenceValue(newParty)
+                                                .setRole(counterpartyRole))
+                                        .setTradeId(Lists.newArrayList(newTradeIdentifier))))
+                        // Split breakdown to terminate the original trade
+                        .addBreakdown(PrimitiveInstruction.builder()
+                                .setQuantityChange(QuantityChangeInstruction.builder()
+                                        .setDirection(QuantityChangeDirectionEnum.REPLACE)
+                                        .addChange(PriceQuantity.builder()
+                                                .addQuantity(FieldWithMetaNonNegativeQuantitySchedule.builder()
+                                                        .setValue(NonNegativeQuantitySchedule.builder()
+                                                                .setValue(BigDecimal.valueOf(0.0))
+                                                                .setUnit(UnitType.builder().setCurrency(getCurrency(notionalCurrency)))))))))
                 .build();
 
         Identifier eventIdentifier = Identifier.builder()
